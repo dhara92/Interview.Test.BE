@@ -1,39 +1,37 @@
-﻿using System;
-using System.Collections.Generic;
+﻿/* This has main method to find out weather strudent is 
+ * graduated or not alog with standing position
+ * 
+ */
+
+using System;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace GraduationTracker
 {
     public partial class GraduationTracker
-    {   
-        public Tuple<bool, STANDING>  HasGraduated(Diploma diploma, Student student)
+    {
+        public Tuple<bool, STANDING> HasGraduated(Diploma diploma, Student student)
         {
             var credits = 0;
             var average = 0;
-        
-            for(int i = 0; i < diploma.Requirements.Length; i++)
-            {
-                for(int j = 0; j < student.Courses.Length; j++)
-                {
-                    var requirement = Repository.GetRequirement(diploma.Requirements[i]);
 
-                    for (int k = 0; k < requirement.Courses.Length; k++)
+            foreach (int d in diploma.Requirements)
+            {
+                foreach (Course c in student.Courses)
+                {
+                    var requirement = Repository.GetRequirement(d);
+                    foreach (var _ in requirement.Courses.Where(r => r == c.Id).Select(r => new { }))
                     {
-                        if (requirement.Courses[k] == student.Courses[j].Id)
+                        average += c.Mark;
+                        if (c.Mark > requirement.MinimumMark)
                         {
-                            average += student.Courses[j].Mark;
-                            if (student.Courses[j].Mark > requirement.MinimumMark)
-                            {
-                                credits += requirement.Credits;
-                            }
+                            credits += requirement.Credits;
                         }
                     }
                 }
             }
 
-            average = average / student.Courses.Length;
+            average /= student.Courses.Length;
 
             var standing = STANDING.None;
 
@@ -44,7 +42,7 @@ namespace GraduationTracker
             else if (average < 95)
                 standing = STANDING.MagnaCumLaude;
             else
-                standing = STANDING.MagnaCumLaude;
+                standing = STANDING.SumaCumLaude;
 
             switch (standing)
             {
@@ -59,7 +57,7 @@ namespace GraduationTracker
 
                 default:
                     return new Tuple<bool, STANDING>(false, standing);
-            } 
+            }
         }
     }
 }
